@@ -1,104 +1,138 @@
-# %%
 from random import randint
 
-lista_npcs = []
+# Definindo o Jogador: Coletando nome e estilo de jogo.
+def build_player():
 
-jogador = {"nome": "Guilherme", 
-           "nível": 1,
-           "dano": 25,
-           "xp": 0, 
-           "xp_max": 50, 
-           "hp": 100, 
-           "hp_max": 100
-           }
+    name = input("Quem jogará hoje? ")
 
-def criar_npcs(level):
+    print("\nLogo abaixo, decida entre o combatente conservador ou o combatente agressivo.\n")
 
-    npc = {"nome": f"Bot {level}", 
-           "nível": level, 
-           "dano": 5 * level, 
-           "hp": 50 * level,
-           "hp_max": 50 * level,
-           "xp": 7 * level
-           }
-    return npc
+    while True:
+        melee_weapon = int(input("[1] para Conservador ou [2] para Agressivo: "))
+
+        if melee_weapon == 1:
+            damage = 22
+            life = 115
+            break
+        elif melee_weapon == 2:
+            damage = 34
+            life = 90
+            break
+        else:
+            print("Informe um valor válido.\n")       
     
-# def quantidade_npcs():
-#     n = randint(1, 5)
-#     return n
-
-def gerar_npcs(n):
-
-    # n = quantidade_npcs()
-    
-    for i in range(1, n + 1):
+    player = {"nome": name, "nível": 1, "estilo_luta": melee_weapon, "habilidade": 1, "dano": damage, "xp": 0, "xp_max": 50, "hp": life, "hp_max": life}
         
-        npc = criar_npcs(i)
-        lista_npcs.append(npc)
+    return player
 
-def atacar_npc():  
-    npc['hp'] -= jogador['dano']
+# Criando NPC's
+def create_npcs(level):
+    npc = {"nome": f"Bot {level}", "nível": level, "dano": 9 * level, "hp": 54 * level, "hp_max": 54 * level, "xp": 20 * level}
+    return npc
 
-def atacar_jogador():       
-    jogador['hp'] -= npc['dano']
+def make_npcs(n):
+    npcs = []
+    for i in range(1, n + 1):   
+        npc = create_npcs(i)
+        npcs.append(npc)
+    return npcs
+        
+# Jogador atacando NPC e vice-versa.
+def attack_npc():  
+    npc['hp'] -= player['dano']
 
-def info_batalha():
-    print(f"Vida atual de {jogador['nome']}: {jogador['hp']}/{jogador['hp_max']}")
-    print(f"Vida atual de {npc['nome']}: {npc['hp']}/{npc['hp_max']} ")
+def attack_player():       
+    player['hp'] -= npc['dano']
 
-def info_jogador():
-    print(f"+ {npc['xp']} pontos de experiência.\nNível: {jogador['nível']} - {jogador['xp']}/{jogador['xp_max']}")
-    print(f"\nNova vida: {jogador['hp_max']} | Novo dano: {jogador['dano']}")
+# Habilidades especiais de cada estilo de luta.
+def special():
+    special = input("\nPressione [S] para usar a habilidade especial. Ou Enter para continuar...")
+    spec = special.lower()
+
+    if spec == "s":
+        dice = randint(0, 3) # 25% de chance de fracasso.
+        if dice == 0: # Perdeu
+            player['habilidade'] -= 1
+            print(f"\n{player['nome']} falhou em usar a habilidade especial. n° de habilidades restante: {player['habilidade']}")
+        else:
+            player['habilidade'] -= 1
+            if player['estilo_luta'] == 1:
+                shield()
+            else:     
+                sword() 
+
+def sword():
+    npc['hp'] -= player['dano']
+    
+def shield():
+    player['hp'] += npc['dano'] * 1.75
+    
+# Informações pré e pós batalhas e atualizações por rounds.
+def info_before_battle():
+    print(f"\n{player['nome']} - Vida atual: {player['hp']} | Dano: {player['dano']} | n° de habilidade(s): {player['habilidade']}")
+    print(f"{npc['nome']} - Vida: {npc['hp']} | Dano: {npc['dano']}")
+
+def info_round():
+    print(f"\nSua vida: {player['hp']}/{player['hp_max']}")
+    print(f"Vida atual de {npc['nome']}: {npc['hp']}/{npc['hp_max']}")
+
+def info_player():
+    print(f"\n+ {npc['xp']} pontos de experiência. Nível: {player['nível']} - {player['xp']}/{player['xp_max']}")
 
 def level_up():
-    if jogador['xp'] >= jogador['xp_max']:
-        jogador['nível'] += 1
-        jogador['xp_max'] *= 2
+    if player['xp'] >= player['xp_max']:
+        player['nível'] += 1
+        player['xp_max'] *= 2
+        player['habilidade'] += 1
 
-def xp_obtido():
-    jogador['xp'] += npc['xp']
+def xp_get():
+    player['xp'] += npc['xp']
 
 def upgrade():
-    jogador['dano'] += 2 * npc['nível']
-    jogador['hp_max'] += 5 * npc['nível']     
+    player['dano'] += 2 * npc['nível']
+    player['hp_max'] += 5 * npc['nível']
+
+def winner():
+    if player["hp"] > 0:
+        print(f"\n{player['nome']} saiu como vencedor!")
+        xp_get()
+        level_up()
+        upgrade()
+        info_player()
+    else:
+        print(f"\n{player['nome']} perdeu!")
 
 def reset():
     npc['hp'] = npc['hp_max']
-    jogador['hp'] = jogador['hp_max']
+    player['hp'] = player['hp_max']
 
-    print("\n_____\n")    
+def division():
+    print(f"\n----------\n{npc['nível']}ª batalha\n----------")
 
-def winner():
-    if jogador["hp"] > 0:
-        print(f"\n{jogador['nome']} saiu como vencedor!")
-        xp_obtido()
-        level_up()
-        upgrade()
-        info_jogador()
-    else:
-        print(f"\n{jogador['nome']} perdeu!")
-
-
-def init():
+def init(player, npc):
     r = []
-    while npc['hp'] > 0 and jogador['hp'] > 0:
+    division()
+    info_before_battle()
+    while npc['hp'] > 0 and player['hp'] > 0:
         r.append(1)
-        print(f"\nRound: {sum(r)}")
-        atacar_npc()
-        atacar_jogador()
-        info_batalha()
+        print(f"\n*Round: {sum(r)}")
+        attack_npc()
+
+        if player['habilidade'] > 0:
+           special()
+        
+        if npc['hp'] > 0: 
+            attack_player()
+                        
+        info_round()
    
     winner()
     reset()
 
-# def exibir_npcs():
-#     for npc in lista_npcs:
-#         print(
-#             f"Nome: {npc['nome']} - Dano: {npc['dano']} - Vida: {npc['hp_max']}"
-#         )
-
-gerar_npcs(5)
+# Criando jogador principal e bots, respectivamente.
+player = build_player()
+npcs = make_npcs(5)
 
 for x in range(5):
-    npc = lista_npcs[x]
-    init()
+    npc = npcs[x]
+    init(player, npc)
